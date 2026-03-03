@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Sipulse Omnipresente v2.7
+// @name         Sipulse Omnipresente v2.8
 // @namespace    http://tampermonkey.net/
-// @version      v2.7
-// @description  Fundo Premium
+// @version      2.8
+// @description  Purificador de Números, Dark Glass e Anti-Duplicação
 // @match        *://*/*
 // @grant        window.focus
 // @grant        GM_setValue
@@ -16,19 +16,16 @@
 
     if (window.top !== window.self) return;
 
-    // ==========================================
 
-    // ==========================================
     if (document.getElementById('sipulse-omni-master-container')) {
-        return; // Se o balão já existe na tela, cancela a operação!
+        return;
     }
 
     const isSipulseTab = window.location.href.includes("hpbx01.brasiltecpar.com.br");
 
-    
     const LINK_IMAGEM_FUNDO = "https://static.wixstatic.com/media/300e5a_95808568788d49c6a0e1a90a4dcfebf8~mv2.png/v1/fill/w_1851,h_900,al_c,q_90,usm_0.66_1.00_0.01,enc_avif,quality_auto/300e5a_95808568788d49c6a0e1a90a4dcfebf8~mv2.png";
 
-   
+
     const estilo = document.createElement('style');
     estilo.innerHTML = `
         /* BOTÃO FLUTUANTE PREMIUM */
@@ -141,9 +138,11 @@
     `;
     document.head.appendChild(estilo);
 
-   
+    // ==========================================
+    // 2. INJETAR HTML NA PÁGINA (COM ID MESTRE)
+    // ==========================================
     const divWrapper = document.createElement('div');
-    divWrapper.id = 'sipulse-omni-master-container'; // Esta é a ETIQUETA que impede clones
+    divWrapper.id = 'sipulse-omni-master-container';
     divWrapper.innerHTML = `
         <div id="omni-botao" title="Sipulse">
             <svg viewBox="0 0 24 24" fill="none" stroke="#00c3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 30px; height: 30px; filter: drop-shadow(0px 0px 4px #00c3ff); pointer-events: none;">
@@ -155,6 +154,7 @@
             <div class="omni-header">SIPULSE OMNI <span id="omni-ramal-texto">Buscando...</span></div>
 
             <div id="omni-tela-teclado">
+
                 <div class="omni-visor-bg">
                     <input type="text" id="omni-visor" class="omni-input" placeholder="Ligar para..." autocomplete="off"/>
                 </div>
@@ -198,7 +198,9 @@
     `;
     document.body.appendChild(divWrapper);
 
-   
+    // ==========================================
+    // 3. LÓGICA DE ARRASTAR O BOTÃO
+    // ==========================================
     const botao = document.getElementById('omni-botao');
     const painel = document.getElementById('omni-painel');
     let isDragging = false;
@@ -237,7 +239,9 @@
         }
     }
 
-   
+    // ==========================================
+    // 4. LÓGICA DOS VISORES, TECLADO E PURIFICADOR
+    // ==========================================
     const visorLigar = document.getElementById('omni-visor');
     const visorTransferir = document.getElementById('omni-visor-transfer');
     let inputAtivo = visorLigar;
@@ -245,8 +249,20 @@
     visorLigar.addEventListener('focus', () => inputAtivo = visorLigar);
     visorTransferir.addEventListener('focus', () => inputAtivo = visorTransferir);
 
+    // 🧼 O PURIFICADOR DE NÚMEROS (REGEX)
+    // Tudo que for digitado ou colado nesses campos, perde letras, espaços e símbolos!
+    const limparCaracteres = function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    };
+    visorLigar.addEventListener('input', limparCaracteres);
+    visorTransferir.addEventListener('input', limparCaracteres);
+
+    // Digita pelos botões da tela
     document.querySelectorAll('.omni-btn-num').forEach(btn => {
-        btn.addEventListener('click', (e) => { inputAtivo.value += e.target.innerText; inputAtivo.focus(); });
+        btn.addEventListener('click', (e) => {
+            inputAtivo.value += e.target.innerText;
+            inputAtivo.focus();
+        });
     });
 
     document.getElementById('omni-btn-apagar').addEventListener('click', () => { inputAtivo.value = ''; inputAtivo.focus(); });
@@ -280,6 +296,7 @@
         GM_setValue('omni_comando', { acao: 'desligar', ts: Date.now() });
         painel.style.display = 'none';
     });
+
     document.getElementById('omni-btn-atender').addEventListener('click', () => {
         GM_setValue('omni_comando', { acao: 'atender', ts: Date.now() });
         painel.style.display = 'none';
