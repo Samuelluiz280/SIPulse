@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sipulse Omnipresente
 // @namespace    http://tampermonkey.net/
-// @version      4.6
+// @version      4.7
 // @description  Ativação via ALT + Q. Fundo Global Forçado (CSS)
 // @author       Samuelluiz280
 // @match        *://*/*
