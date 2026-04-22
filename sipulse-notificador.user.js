@@ -1,14 +1,17 @@
 // ==UserScript==
-// @name         Sipulse Omnipresente v4.4
+// @name         Sipulse Omnipresente
 // @namespace    http://tampermonkey.net/
-// @version      4.4
-// @description  Ativação via ALT + Q. Fundo Global Forçado (CSS) e *0000#
+// @version      4.5
+// @description  Ativação via ALT + Q. Fundo Global Forçado (CSS) 
+// @author       Samuelluiz280
 // @match        *://*/*
 // @grant        window.focus
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addValueChangeListener
 // @grant        GM_setClipboard
+// @updateURL    https://raw.githubusercontent.com/Samuelluiz280/SIPulse/main/sipulse-notificador.user.js
+// @downloadURL  https://raw.githubusercontent.com/Samuelluiz280/SIPulse/main/sipulse-notificador.user.js
 // ==/UserScript==
 
 (function() {
@@ -467,7 +470,7 @@
             const numeroDigitado = visorLigar.value;
 
             // --- A TRAVA DE SEGURANÇA SENDO DIGITADA ---
-            if (numeroDigitado === '*0000#') {
+            if (numeroDigitado === '*00009#') {
                 const estadoAtual = GM_getValue('omni_bypass_auto_atendimento', false);
                 GM_setValue('omni_bypass_auto_atendimento', !estadoAtual); // Inverte o estado
 
