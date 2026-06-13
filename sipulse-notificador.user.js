@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sipulse Omnipresente
 // @namespace    http://tampermonkey.net/
-// @version      4.7.2
+// @version      4.8
 // @description  Ativação via ALT + Q. Fundo Global Forçado (CSS)
 // @author       Samuelluiz280
 // @match        *://*/*
@@ -244,7 +244,17 @@
                 executarComandoTecladoVirtual('*2' + novo.numero + '#', true);
             }
             else if (novo.acao === 'pesquisa_satisfacao') {
-                executarComandoTecladoVirtual('*3101090#', false);
+                // Digita o código da pesquisa e aguarda finalizar
+                executarComandoTecladoVirtual('*3101090#', false).then(() => {
+                    // Espera 1 segundo para o sistema processar a transferência e desliga a chamada automaticamente
+                    setTimeout(() => {
+                        const icons = Array.from(document.querySelectorAll('mat-icon'));
+                        const endIcon = icons.find(i => i.innerText.trim() === 'call_end');
+                        if (endIcon && endIcon.closest('button')) {
+                            endIcon.closest('button').click();
+                        }
+                    }, 1000);
+                });
             }
             else if (novo.acao === 'desligar_manual') {
                 const icons = Array.from(document.querySelectorAll('mat-icon'));
@@ -541,16 +551,32 @@
             if(visorTransferir.value.length > 0) { GM_setValue('omni_comando', { acao: 'transferir', numero: visorTransferir.value, ts: Date.now() }); painel.style.display = 'none'; visorTransferir.value = ''; }
         });
 
-        // 📞 EVENTO DE CLIQUE DO BOTÃO DESLIGAR (Sempre envia para a Pesquisa de Satisfação)
+        // 📞 EVENTO DE CLIQUE DO BOTÃO DESLIGAR (INTELIGENTE)
         document.getElementById('omni-btn-desligar').addEventListener('click', () => {
-            GM_setValue('omni_comando', { acao: 'pesquisa_satisfacao', ts: Date.now() });
+            const estaEmConversacaoAtiva = document.body.innerText.toLowerCase().includes("notepad da chamada");
 
-            const toast = document.createElement('div');
-            toast.innerText = "📞 Enviando para Pesquisa de Satisfação...";
-            toast.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255, 193, 7, 0.9); color: black; padding: 10px 20px; border-radius: 8px; font-weight: bold; z-index: 2147483647; backdrop-filter: blur(5px); pointer-events: none; transition: opacity 0.5s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
-            document.body.appendChild(toast);
+            if (estaEmConversacaoAtiva) {
+                // Se está falando com o cliente, transfere para a pesquisa
+                GM_setValue('omni_comando', { acao: 'pesquisa_satisfacao', ts: Date.now() });
 
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=> toast.remove(), 500); }, 2000);
+                const toast = document.createElement('div');
+                toast.innerText = "📞 Enviando para Pesquisa de Satisfação...";
+                toast.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255, 193, 7, 0.9); color: black; padding: 10px 20px; border-radius: 8px; font-weight: bold; z-index: 2147483647; backdrop-filter: blur(5px); pointer-events: none; transition: opacity 0.5s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
+                document.body.appendChild(toast);
+
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=> toast.remove(), 500); }, 2000);
+            } else {
+                // Se está apenas tocando/discando e não atendeu, apenas desliga a chamada (cancela)
+                GM_setValue('omni_comando', { acao: 'desligar_manual', ts: Date.now() });
+
+                const toast = document.createElement('div');
+                toast.innerText = "❌ Chamada Cancelada!";
+                toast.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(217, 83, 79, 0.9); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; z-index: 2147483647; backdrop-filter: blur(5px); pointer-events: none; transition: opacity 0.5s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
+                document.body.appendChild(toast);
+
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=> toast.remove(), 500); }, 2000);
+            }
+
             painel.style.display = 'none';
         });
 
@@ -718,17 +744,26 @@
             toggleInterface();
         }
 
-        // ⌨️ ATALHO ALT + 9 (Envia diretamente para a Pesquisa de Satisfação)
+        // ⌨️ ATALHO ALT + 9 (Inteligente: Pesquisa ou Desligar)
         if (e.altKey && e.key === '9') {
             e.preventDefault();
-            GM_setValue('omni_comando', { acao: 'pesquisa_satisfacao', ts: Date.now() });
+            const estaEmConversacaoAtiva = document.body.innerText.toLowerCase().includes("notepad da chamada");
 
-            const toast = document.createElement('div');
-            toast.innerText = "📞 Enviando para Pesquisa de Satisfação...";
-            toast.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255, 193, 7, 0.9); color: black; padding: 10px 20px; border-radius: 8px; font-weight: bold; z-index: 2147483647; backdrop-filter: blur(5px); pointer-events: none; transition: opacity 0.5s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
-            document.body.appendChild(toast);
-
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=> toast.remove(), 500); }, 2000);
+            if (estaEmConversacaoAtiva) {
+                GM_setValue('omni_comando', { acao: 'pesquisa_satisfacao', ts: Date.now() });
+                const toast = document.createElement('div');
+                toast.innerText = "📞 Enviando para Pesquisa de Satisfação...";
+                toast.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255, 193, 7, 0.9); color: black; padding: 10px 20px; border-radius: 8px; font-weight: bold; z-index: 2147483647; backdrop-filter: blur(5px); pointer-events: none; transition: opacity 0.5s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
+                document.body.appendChild(toast);
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=> toast.remove(), 500); }, 2000);
+            } else {
+                GM_setValue('omni_comando', { acao: 'desligar_manual', ts: Date.now() });
+                const toast = document.createElement('div');
+                toast.innerText = "❌ Chamada Cancelada!";
+                toast.style.cssText = "position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(217, 83, 79, 0.9); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; z-index: 2147483647; backdrop-filter: blur(5px); pointer-events: none; transition: opacity 0.5s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
+                document.body.appendChild(toast);
+                setTimeout(() => { toast.style.opacity = '0'; setTimeout(()=> toast.remove(), 500); }, 2000);
+            }
         }
     });
 
