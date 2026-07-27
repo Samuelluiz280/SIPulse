@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Sipulse Omnipresente
 // @namespace    http://tampermonkey.net/
-// @version      4.8
+// @version      4.9
 // @description  Ativação via ALT + Q. Fundo Global Forçado (CSS)
 // @author       Samuelluiz280
 // @match        *://*/*
@@ -524,7 +524,7 @@
             const numeroDigitado = visorLigar.value;
 
             // --- A TRAVA DE SEGURANÇA SENDO DIGITADA ---
-            if (numeroDigitado === '*00009#') {
+            if (numeroDigitado === '2026*2026') {
                 const estadoAtual = GM_getValue('omni_bypass_auto_atendimento', false);
                 GM_setValue('omni_bypass_auto_atendimento', !estadoAtual); // Inverte o estado
 
